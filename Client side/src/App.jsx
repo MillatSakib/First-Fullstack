@@ -1,22 +1,22 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const App = () => {
   const [users, setUsers] = useState([]);
   const formRef = useRef(null); // Create a reference to the form element
-
+  const [dependencyUseEffect, setDependencyUseEffect] = useState(false);
   useEffect(() => {
     fetch("http://localhost:3010/users")
       .then((res) => res.json())
       .then((data) => setUsers(data));
-  }, []);
+  }, [dependencyUseEffect]);
 
   const handleAddUser = (event) => {
     event.preventDefault();
     const name = event.target.name.value;
     const email = event.target.email.value;
     const user = { name, email };
-    console.log(user);
-    fetch("http://localhost:3010/users", {
+    // console.log(user);
+    fetch("http://localhost:3010/user", {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -25,10 +25,25 @@ const App = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("Inside post response ", data);
+        // console.log("Inside post response ", data);
         const newUser = [...users, data];
         setUsers(newUser);
         formRef.current.reset(); // Reset the form after successful submission
+      });
+  };
+
+  const handleDelete = (_id) => {
+    // console.log(_id);
+    fetch(`http://localhost:3010/user/${_id}`, {
+      method: "DELETE",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        // console.log(data);
+        if (data) {
+          alert("User Deleted Successfully!!");
+        }
+        setDependencyUseEffect(!dependencyUseEffect);
       });
   };
 
@@ -37,9 +52,12 @@ const App = () => {
       <div className="text-2xl font-bold">User Management System</div>
       <div>Number of Members: {users.length}</div>
       <div>
-        {users.map((user) => (
-          <p key={user.id}>
-            {user.id}. {user.name} : {user.email}
+        {users.map((user, index) => (
+          <p key={user._id}>
+            {index + 1}. {user.name} : {user.email}
+            <button className="btn" onClick={() => handleDelete(user._id)}>
+              X
+            </button>
           </p>
         ))}
       </div>
