@@ -15,7 +15,6 @@ app.use(express.json())
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://millatsakib01:zh782XtVSyC40rxZ@cluster0.lm9a1gh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
     serverApi: {
         version: ServerApiVersion.v1,
@@ -70,6 +69,30 @@ async function run() {
             deleteUserFromDB(req, res, userCollection, id);
 
         })
+
+        app.get('/user/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const user = await userCollection.findOne(query);
+            res.send(user);
+
+        })
+
+        app.put('/user/:id', async (req, res) => {
+            const id = req.params.id;
+            const user = req.body;
+            console.log(id, user);
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const updatedUser = {
+                $set: {
+                    name: user.name,
+                    email: user.email,
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedUser, options)
+            res.send(result)
+        })
     }
     finally {
     }
@@ -95,23 +118,6 @@ const users = [
         email: 'sabila@gmail.com'
     }
 ]
-
-app.get("/", (req, res) => {
-    res.send('Users Management server is running.');
-})
-
-app.get("/users", (req, res) => {
-    res.send(users)
-})
-
-// app.post("/users", (req, res) => {
-//     console.log("post user hitted!!");
-
-//     const newUser = req.body;
-//     newUser.id = users.length + 1;
-//     users.push(newUser);
-//     res.send(newUser);
-// })
 
 app.listen(port, () => {
     console.log(`Server is runnig on PORT ${port}`);
